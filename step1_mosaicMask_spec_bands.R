@@ -16,7 +16,6 @@ for (x in 1:length(dirs)){
   drivedir = dirs[x] # folders for specific Sentinel-2 image dates
   cat("Working on", drivedir, "\n")
   
-  sensor = substr(drivedir, 1, 3) # what sentinel-2 sensor
 
   # should be 5 files: 4 spectral band tiles, 1 mask file
   files = list.files(paste(getwd(), drivedir, sep = "/"), 
@@ -25,7 +24,7 @@ for (x in 1:length(dirs)){
   # if there are < 5 files then something went wrong
   if (length(files) == 5){
     # make directory for s2 date in raw_spectra folder
-    dir_out = paste(outdir, "raw_spectra", sensor, drivedir, sep = "/")
+    dir_out = paste(outdir, "raw_spectra", drivedir, sep = "/")
     dir.create(dir_out)
     
     # copy S2 date .tif files to the new folder
@@ -43,7 +42,8 @@ for (x in 1:length(dirs)){
     # Basename for output mosaics
     specname = basename(band_files[1]) %>%
       substr(1, 47) %>%
-      paste0(".tif")
+      paste0(".tif") %>%
+      str_remove("spectral")
     
     # date of the s2 image
     date = basename(band_files[1]) %>%
@@ -67,17 +67,18 @@ for (x in 1:length(dirs)){
     
     # mosaic spectral band tiles
     out = mosaic(r)
+    NAflag(out) = 0
 
     # Apply mask to mosaicked spectral bands
     cat("Masking spectral bands", "\n")
-    out = mask(out, mask$SCL_mask) 
+    out = mask(out, mask) 
     
     
     # if needed, plot RGB of s2 image for sanity
     # plotRGB(out, 3, 2, 1, stretch = "lin")
 
     # write mosaicked/masked s2 image to geotiff file
-    outfile = paste(outdir, "raw_mosaics", sensor, 'spectra', specname, sep = "/")
+    outfile = paste(outdir, "raw_mosaics", 'spectra', specname, sep = "/")
     writeRaster(out, outfile)
     
     cat("Completed mosaic and masking for", drivedir, "\n")
