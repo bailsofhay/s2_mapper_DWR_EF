@@ -52,7 +52,7 @@ for (x in 1:length(dirs)){
       as_date(tz = NULL)%>%
       as.character()
     
-    print(date)
+    # print(date)
     
     # Load in the Mask raster
     mask = rast(mask_files)
@@ -61,16 +61,22 @@ for (x in 1:length(dirs)){
     
     
     # set up spectral band tiles for mosaic
-    cat("Mosaicking spectral bands", "\n")
+    cat("\t", "Mosaicking spectral bands", "\n")
     r = lapply(band_files, rast)
+    
+    # set NA flag for each tile
+    r = lapply(r, function(x) {
+      NAflag(x) = 0
+      x
+    })
+    
     r = sprc(r)
     
     # mosaic spectral band tiles
     out = mosaic(r)
-    NAflag(out) = 0
 
     # Apply mask to mosaicked spectral bands
-    cat("Masking spectral bands", "\n")
+    cat("\t", "Masking spectral bands", "\n")
     out = mask(out, mask) 
     
     
@@ -79,9 +85,10 @@ for (x in 1:length(dirs)){
 
     # write mosaicked/masked s2 image to geotiff file
     outfile = paste(outdir, "raw_mosaics", 'spectra', specname, sep = "/")
+    cat("\t", "Writing out spectral bands", "\n")
     writeRaster(out, outfile)
     
-    cat("Completed mosaic and masking for", drivedir, "\n")
+    cat("\t", "Completed mosaic and masking for", drivedir, "\n")
     
   } else {
     cat(drivedir, "is missing files. Please check.", "\n")
