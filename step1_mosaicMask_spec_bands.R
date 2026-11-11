@@ -13,10 +13,8 @@ dirs = list.files(path = "E://sentinel2_harmonized/",
                   "HARMONIZED_")
 
 for (x in 1:length(dirs)){
-  # indir = "F://sentinel2_harmonized/redone_downloads"
-  # setwd(indir)
-  
   drivedir = dirs[x] # folders for specific Sentinel-2 image dates
+  cat("Working on", drivedir, "\n")
   
   sensor = substr(drivedir, 1, 3) # what sentinel-2 sensor
 
@@ -63,6 +61,7 @@ for (x in 1:length(dirs)){
     
     
     # set up spectral band tiles for mosaic
+    cat("Mosaicking spectral bands", "\n")
     r = lapply(band_files, rast)
     r = sprc(r)
     
@@ -70,10 +69,12 @@ for (x in 1:length(dirs)){
     out = mosaic(r)
 
     # Apply mask to mosaicked spectral bands
+    cat("Masking spectral bands", "\n")
     out = mask(out, mask$SCL_mask) 
     
+    
     # if needed, plot RGB of s2 image for sanity
-    plotRGB(out, 3, 2, 1, stretch = "lin")
+    # plotRGB(out, 3, 2, 1, stretch = "lin")
 
     # write mosaicked/masked s2 image to geotiff file
     outfile = paste(outdir, "raw_mosaics", sensor, 'spectra', specname, sep = "/")
