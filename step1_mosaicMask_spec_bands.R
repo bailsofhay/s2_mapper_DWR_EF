@@ -146,11 +146,12 @@ for (drivedir in dirs) {
   # Load each multiband spectral tile
   r <- lapply(band_files, rast)
   
-  # Set NoData flag independently for each tile before mosaicking
-  r <- lapply(r, function(x) {
-    NAflag(x) <- 0
-    x
-  })
+  ### Don't use this chunk. Values of 0 is normal for some bands, not NA
+  # # Set NoData flag independently for each tile before mosaicking
+  # r <- lapply(r, function(x) {
+  #   NAflag(x) <- 0
+  #   x
+  # })
   
   # Combine spectral tiles into a SpatRasterCollection
   r <- sprc(r)
