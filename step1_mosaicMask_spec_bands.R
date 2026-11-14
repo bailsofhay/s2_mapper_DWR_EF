@@ -1,3 +1,4 @@
+
 # =============================================================================
 # Sentinel-2 Harmonized: Mosaic and Mask Spectral Imagery
 # =============================================================================
@@ -16,12 +17,16 @@
 #   3. Load the spectral tiles and corresponding mask.
 #   4. Mosaic the spectral tiles into a single multiband raster.
 #   5. Apply the raster mask to the mosaicked imagery.
-#   6. Export the masked mosaic to the raw_mosaics directory.
+#   6. Replace zero reflectance values with 0.001.
+#   7. Export the masked mosaic to the raw_mosaics directory.
 #
 # Notes:
 #   - Export directories are removed only after successful file copying.
 #   - Archived raw imagery is retained for reproducibility.
-#   - Input rasters use 0 as the NoData value.
+#   - Zero is a valid spectral reflectance value and is not treated as NoData.
+#   - Zero reflectance values are replaced with 0.001 to support index
+#     calculations and avoid division-by-zero errors.
+#   - Masked pixels remain NA.
 #   - All spectral tiles and masks must share a compatible raster grid.
 #
 # =============================================================================
@@ -51,7 +56,6 @@ dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
 
 # 3. Identify Unprocessed Sentinel-2 Images -----------------------------------
 
-
 # Identify GEE export directories that have not yet been archived
 dirs <- list.dirs(indir, recursive = FALSE, full.names = FALSE)
 dirs <- dirs[grepl("^S2[ABC]_SR_HARMONIZED_", dirs)]
@@ -64,6 +68,7 @@ cat("Found", length(dirs), "Sentinel-2 directories to process.\n")
 for (drivedir in dirs) {
   
   cat("\nWorking on:", drivedir, "\n")
+  
   
   # 4.1. Identify and Validate Input Files ------------------------------------
   
@@ -79,7 +84,8 @@ for (drivedir in dirs) {
   band_files <- files[grepl("spectra", basename(files))]
   mask_files <- files[grepl("mask", basename(files))]
   
-  # Skip incomplete exports --> GEE may have failed processing/exporting
+  # Skip incomplete exports --> GEE may have failed processing/exporting if 
+  # there are not 5 files total.
   if (length(files) != 5 ||
       length(band_files) != 4 ||
       length(mask_files) != 1) {
@@ -135,7 +141,7 @@ for (drivedir in dirs) {
   # Mask incorporates SCL and Cloud Score+ screening from GEE
   mask_rast <- rast(mask_files)
   
-  # Interpret zero-valued pixels as NoData
+  # Interpret zero-valued mask pixels as NoData
   NAflag(mask_rast) <- 0
   
   
@@ -144,14 +150,8 @@ for (drivedir in dirs) {
   cat("\t", "Mosaicking spectral tiles...\n")
   
   # Load each multiband spectral tile
+  # Zero reflectance values are retained during mosaicking
   r <- lapply(band_files, rast)
-  
-  ### Don't use this chunk. Values of 0 is normal for some bands, not NA
-  # # Set NoData flag independently for each tile before mosaicking
-  # r <- lapply(r, function(x) {
-  #   NAflag(x) <- 0
-  #   x
-  # })
   
   # Combine spectral tiles into a SpatRasterCollection
   r <- sprc(r)
@@ -171,7 +171,17 @@ for (drivedir in dirs) {
   # plotRGB(out, r = 3, g = 2, b = 1, stretch = "lin")
   
   
-  # 4.7. Export Processed Spectral Mosaic -------------------------------------
+  # 4.7. Replace Zero Reflectance Values --------------------------------------
+  
+  cat("\t", "Replacing zero reflectance values...\n")
+  
+  # Replace valid zero reflectance values with a small positive value
+  # to prevent division-by-zero errors when calculating spectral indices.
+  # Existing NA values are preserved.
+  out <- ifel(out == 0, 0.001, out)
+  
+  
+  # 4.8. Export Processed Spectral Mosaic -------------------------------------
   
   cat("\t", "Writing masked spectral mosaic...\n")
   
