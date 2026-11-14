@@ -1,98 +1,186 @@
+# =============================================================================
+# Sentinel-2 Harmonized: Mosaic and Mask Spectral Imagery
+# =============================================================================
+#
+# Description:
+#   Processes Sentinel-2 Harmonized imagery exported from Google Earth Engine
+#   (GEE) for aquatic vegetation classification.
+#
+#   Each GEE export directory is expected to contain five GeoTIFF files:
+#     - Four tiled, multiband spectral images
+#     - One raster mask containing SCL and Cloud Score+ screening results
+#
+# Workflow:
+#   1. Identify newly downloaded Sentinel-2 image directories.
+#   2. Archive GeoTIFF files in the raw_spectra directory.
+#   3. Load the spectral tiles and corresponding mask.
+#   4. Mosaic the spectral tiles into a single multiband raster.
+#   5. Apply the raster mask to the mosaicked imagery.
+#   6. Export the masked mosaic to the raw_mosaics directory.
+#
+# Notes:
+#   - Export directories are removed only after successful file copying.
+#   - Archived raw imagery is retained for reproducibility.
+#   - Input rasters use 0 as the NoData value.
+#   - All spectral tiles and masks must share a compatible raster grid.
+#
+# =============================================================================
+
+
+# 1. Load Required Packages ---------------------------------------------------
+
 library(terra)
-library(dplyr)
 library(stringr)
-library(lubridate)
-
-indir = "E://sentinel2_harmonized/"
-setwd(indir)
-
-outdir = "E://sentinel2_harmonized/"
 
 
-dirs = list.files(path = "E://sentinel2_harmonized/",
-                  "HARMONIZED_")
+# 2. Define Input and Output Directories --------------------------------------
 
-for (x in 1:length(dirs)){
-  drivedir = dirs[x] # folders for specific Sentinel-2 image dates
-  cat("Working on", drivedir, "\n")
+# Parent directory containing downloaded Sentinel-2 imagery
+indir <- "E:/sentinel2_harmonized"
+
+# Directory for archiving original GEE exports
+raw_dir <- file.path(indir, "raw_spectra")
+
+# Directory for processed spectral mosaics
+outdir <- file.path(indir, "raw_mosaics", "spectra")
+
+# Create output directories if they do not exist
+dir.create(raw_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
+
+
+# 3. Identify Unprocessed Sentinel-2 Images -----------------------------------
+
+
+# Identify GEE export directories that have not yet been archived
+dirs <- list.dirs(indir, recursive = FALSE, full.names = FALSE)
+dirs <- dirs[grepl("^S2[ABC]_SR_HARMONIZED_", dirs)]
+
+cat("Found", length(dirs), "Sentinel-2 directories to process.\n")
+
+
+# 4. Process Sentinel-2 Images ------------------------------------------------
+
+for (drivedir in dirs) {
   
-
-  # should be 5 files: 4 spectral band tiles, 1 mask file
-  files = list.files(paste(getwd(), drivedir, sep = "/"), 
-                     ".tif$", include.dirs = T, full.names = T)
+  cat("\nWorking on:", drivedir, "\n")
   
-  # if there are < 5 files then something went wrong
-  if (length(files) == 5){
-    # make directory for s2 date in raw_spectra folder
-    dir_out = paste(outdir, "raw_spectra", drivedir, sep = "/")
-    dir.create(dir_out)
+  # 4.1. Identify and Validate Input Files ------------------------------------
+  
+  # Each export should contain four spectral tiles and one mask
+  input_dir <- file.path(indir, drivedir)
+  
+  files <- list.files(
+    path = input_dir,
+    pattern = "\\.tif$",
+    full.names = TRUE
+  )
+  
+  band_files <- files[grepl("spectra", basename(files))]
+  mask_files <- files[grepl("mask", basename(files))]
+  
+  # Skip incomplete exports --> GEE may have failed processing/exporting
+  if (length(files) != 5 ||
+      length(band_files) != 4 ||
+      length(mask_files) != 1) {
     
-    # copy S2 date .tif files to the new folder
-    copy_out = paste(dir_out, basename(files), sep = "/")
-    file.copy(from = files, to = copy_out)
-    
-    # helps keep track of whats been mosaicked and what hasn't
-    unlink(drivedir, recursive = TRUE, force = T) # remove the old folder and data
-
-    # spectral tifs
-    band_files = copy_out[grep("spectra", files)]
-    # mask tif --> includes SCL + CloudScore+ mask
-    mask_files = copy_out[grep("mask", files)]
-    
-    # Basename for output mosaics
-    specname = basename(band_files[1]) %>%
-      substr(1, 47) %>%
-      paste0(".tif") %>%
-      str_remove("spectral")
-    
-    # date of the s2 image
-    date = basename(band_files[1]) %>%
-      str_extract("[0-9]{8}T[0-9]{6}")%>%
-      substr(1, 8) %>%
-      as_date(tz = NULL)%>%
-      as.character()
-    
-    # print(date)
-    
-    # Load in the Mask raster
-    mask = rast(mask_files)
-    NAflag(mask) = 0 # set no data flag
-    # plot(mask)
-    
-    
-    # set up spectral band tiles for mosaic
-    cat("\t", "Mosaicking spectral bands", "\n")
-    r = lapply(band_files, rast)
-    
-    # set NA flag for each tile
-    r = lapply(r, function(x) {
-      NAflag(x) = 0
-      x
-    })
-    
-    r = sprc(r)
-    
-    # mosaic spectral band tiles
-    out = mosaic(r)
-
-    # Apply mask to mosaicked spectral bands
-    cat("\t", "Masking spectral bands", "\n")
-    out = mask(out, mask) 
-    
-    
-    # if needed, plot RGB of s2 image for sanity
-    # plotRGB(out, 3, 2, 1, stretch = "lin")
-
-    # write mosaicked/masked s2 image to geotiff file
-    outfile = paste(outdir, "raw_mosaics", 'spectra', specname, sep = "/")
-    cat("\t", "Writing out spectral bands", "\n")
-    writeRaster(out, outfile)
-    
-    cat("\t", "Completed mosaic and masking for", drivedir, "\n")
-    
-  } else {
-    cat(drivedir, "is missing files. Please check.", "\n")
+    warning("Incomplete or unexpected files in: ", drivedir)
+    next
   }
-
+  
+  
+  # 4.2. Archive Original Sentinel-2 Files ------------------------------------
+  
+  # Move a copy of each export into raw_spectra for permanent storage
+  archive_dir <- file.path(raw_dir, drivedir)
+  
+  dir.create(archive_dir, showWarnings = FALSE)
+  
+  archive_files <- file.path(archive_dir, basename(files))
+  
+  # Copy files and verify successful transfer
+  copied <- file.copy(
+    from = files,
+    to = archive_files,
+    overwrite = FALSE
+  )
+  
+  if (!all(copied)) {
+    warning("File copying failed for: ", drivedir)
+    next
+  }
+  
+  # Remove the original download directory after verifying the copies
+  # Archived files remain available for future reprocessing
+  unlink(input_dir, recursive = TRUE, force = TRUE)
+  
+  # Update file paths to archived copies
+  band_files <- archive_files[grepl("spectra", basename(archive_files))]
+  mask_files <- archive_files[grepl("mask", basename(archive_files))]
+  
+  
+  # 4.3. Define Output Filename -----------------------------------------------
+  
+  # Preserve the existing GEE-based naming convention for mosaics
+  specname <- basename(band_files[1]) |>
+    substr(1, 47) |>
+    paste0(".tif") |>
+    str_remove("spectral")
+  
+  outfile <- file.path(outdir, specname)
+  
+  
+  # 4.4. Load Raster Mask -----------------------------------------------------
+  
+  # Mask incorporates SCL and Cloud Score+ screening from GEE
+  mask_rast <- rast(mask_files)
+  
+  # Interpret zero-valued pixels as NoData
+  NAflag(mask_rast) <- 0
+  
+  
+  # 4.5. Mosaic Spectral Band Tiles -------------------------------------------
+  
+  cat("  Mosaicking spectral tiles...\n")
+  
+  # Load each multiband spectral tile
+  r <- lapply(band_files, rast)
+  
+  # Set NoData flag independently for each tile before mosaicking
+  r <- lapply(r, function(x) {
+    NAflag(x) <- 0
+    x
+  })
+  
+  # Combine spectral tiles into a SpatRasterCollection
+  r <- sprc(r)
+  
+  # Mosaic overlapping tiles into one multiband raster
+  out <- mosaic(r)
+  
+  
+  # 4.6. Apply Raster Mask ----------------------------------------------------
+  
+  cat("  Applying SCL / Cloud Score+ mask...\n")
+  
+  # Exclude pixels flagged as NoData in the raster mask
+  out <- mask(out, mask_rast)
+  
+  # Optional visual quality check (RGB composite)
+  # plotRGB(out, r = 3, g = 2, b = 1, stretch = "lin")
+  
+  
+  # 4.7. Export Processed Spectral Mosaic -------------------------------------
+  
+  cat("  Writing masked spectral mosaic...\n")
+  
+  writeRaster(
+    out,
+    filename = outfile,
+    overwrite = FALSE
+  )
+  
+  cat("Completed:", drivedir, "\n")
 }
 
+cat("\nSentinel-2 mosaic processing finished.\n")
