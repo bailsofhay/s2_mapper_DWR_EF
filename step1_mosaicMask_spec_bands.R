@@ -141,7 +141,7 @@ for (drivedir in dirs) {
   
   # 4.5. Mosaic Spectral Band Tiles -------------------------------------------
   
-  cat("  Mosaicking spectral tiles...\n")
+  cat("\t", "Mosaicking spectral tiles...\n")
   
   # Load each multiband spectral tile
   r <- lapply(band_files, rast)
@@ -161,7 +161,7 @@ for (drivedir in dirs) {
   
   # 4.6. Apply Raster Mask ----------------------------------------------------
   
-  cat("  Applying SCL / Cloud Score+ mask...\n")
+  cat("\t", "Applying SCL / Cloud Score+ mask...\n")
   
   # Exclude pixels flagged as NoData in the raster mask
   out <- mask(out, mask_rast)
@@ -172,7 +172,7 @@ for (drivedir in dirs) {
   
   # 4.7. Export Processed Spectral Mosaic -------------------------------------
   
-  cat("  Writing masked spectral mosaic...\n")
+  cat("\t", "Writing masked spectral mosaic...\n")
   
   writeRaster(
     out,
