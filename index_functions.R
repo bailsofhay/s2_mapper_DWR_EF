@@ -27,6 +27,29 @@
 
 # 1. Spectral Index Functions -------------------------------------------------
 
+# Enhanced Vegetation Index (EVI)
+# Uses blue, red, and NIR reflectance to characterize vegetation
+# greenness while accounting for atmospheric and background effects.
+evi <- function(r) {
+  
+  out <- 2.5 * ((r$B8 - r$B4) /
+                  (r$B8 + 6 * r$B4 - 7.5 * r$B2 + 1))
+  
+  names(out) <- "evi"
+  return(out)
+}
+
+
+# Green Normalized Difference Vegetation Index (GNDVI)
+# Uses green and NIR reflectance to characterize vegetation greenness.
+gndvi <- function(r) {
+  
+  out <- (r$B8 - r$B3) / (r$B8 + r$B3)
+  
+  names(out) <- "gndvi"
+  return(out)
+}
+
 
 # Modified Chlorophyll Absorption Ratio Index (MCARI)
 # Uses green, red, and red-edge reflectance to characterize chlorophyll
@@ -52,53 +75,6 @@ mndwi <- function(r) {
 }
 
 
-# Normalized Difference Moisture Index (NDMI)
-# Uses narrow NIR and SWIR reflectance to characterize vegetation
-# and surface moisture conditions.
-ndmi <- function(r) {
-  
-  out <- (r$B8A - r$B11) / (r$B8A + r$B11)
-  
-  names(out) <- "ndmi"
-  return(out)
-}
-
-
-# Visible Atmospherically Resistant Index (VARI)
-# Uses visible bands to characterize vegetation greenness.
-vari <- function(r) {
-  
-  out <- (r$B3 - r$B4) / (r$B3 + r$B4 - r$B2)
-  
-  names(out) <- "vari"
-  return(out)
-}
-
-
-# Enhanced Vegetation Index (EVI)
-# Uses blue, red, and NIR reflectance to characterize vegetation
-# greenness while accounting for atmospheric and background effects.
-evi <- function(r) {
-  
-  out <- 2.5 * ((r$B8 - r$B4) /
-                  (r$B8 + 6 * r$B4 - 7.5 * r$B2 + 1))
-  
-  names(out) <- "evi"
-  return(out)
-}
-
-
-# Green Normalized Difference Vegetation Index (GNDVI)
-# Uses green and NIR reflectance to characterize vegetation greenness.
-gndvi <- function(r) {
-  
-  out <- (r$B8 - r$B3) / (r$B8 + r$B3)
-  
-  names(out) <- "gndvi"
-  return(out)
-}
-
-
 # Normalized Difference Aquatic Vegetation Index (NDAVI)
 # Uses blue and NIR reflectance to distinguish aquatic vegetation
 # from surrounding water.
@@ -107,6 +83,18 @@ ndavi <- function(r) {
   out <- (r$B8 - r$B2) / (r$B8 + r$B2)
   
   names(out) <- "ndavi"
+  return(out)
+}
+
+
+# Normalized Difference Moisture Index (NDMI)
+# Uses narrow NIR and SWIR reflectance to characterize vegetation
+# and surface moisture conditions.
+ndmi <- function(r) {
+  
+  out <- (r$B8A - r$B11) / (r$B8A + r$B11)
+  
+  names(out) <- "ndmi"
   return(out)
 }
 
@@ -122,18 +110,6 @@ ndvi <- function(r) {
 }
 
 
-# Water Adjusted Vegetation Index (WAVI)
-# Uses blue and NIR reflectance with a background adjustment factor
-# to characterize aquatic vegetation.
-wavi <- function(r) {
-  
-  out <- (r$B8 - r$B2) / (0.5 + r$B8 + r$B2)
-  
-  names(out) <- "wavi"
-  return(out)
-}
-
-
 # Soil Adjusted Vegetation Index (SAVI)
 # Uses red and NIR reflectance with a soil adjustment factor (L = 0.5)
 # to reduce background influences on vegetation greenness.
@@ -142,5 +118,28 @@ savi <- function(r) {
   out <- ((r$B8 - r$B4) / (r$B8 + r$B4 + 0.5)) * 1.5
   
   names(out) <- "savi"
+  return(out)
+}
+
+
+# Visible Atmospherically Resistant Index (VARI)
+# Uses visible bands to characterize vegetation greenness.
+vari <- function(r) {
+  
+  out <- (r$B3 - r$B4) / (r$B3 + r$B4 - r$B2)
+  
+  names(out) <- "vari"
+  return(out)
+}
+
+
+# Water Adjusted Vegetation Index (WAVI)
+# Uses blue and NIR reflectance with a background adjustment factor
+# to characterize aquatic vegetation.
+wavi <- function(r) {
+  
+  out <- (r$B8 - r$B2) / (0.5 + r$B8 + r$B2)
+  
+  names(out) <- "wavi"
   return(out)
 }
