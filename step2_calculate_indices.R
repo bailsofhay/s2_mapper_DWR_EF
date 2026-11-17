@@ -31,7 +31,7 @@ library(terra)
 library(stringr)
 
 # Load spectral index functions
-source("E:/sentinel2_harmonized/raw_mosaics/index_functions.R")
+source("C://Users/bdmor/Documents/s2_mapper_DWR_EF/index_functions.R")
 
 
 # 2. Define Input and Output Directories --------------------------------------
