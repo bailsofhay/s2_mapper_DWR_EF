@@ -159,6 +159,30 @@ for (drivedir in dirs) {
   # Mosaic overlapping tiles into one multiband raster
   out <- mosaic(r)
   
+  # Note: Why the code does not set spectral band pixels with value of 0 to NA.
+  # COPERNICUS/S2_SR_HARMONIZED, a value of 0 in the spectral reflectance 
+  # bands represents an actual scaled reflectance value of 0 (or a negative 
+  # value clipped to 0), rather than NA (NoData).
+  
+  # In Google Earth Engine (GEE), true NoData areas (such as pixels outside the 
+  # satellite swath or granule footprint) are natively masked out via the 
+  # image's internal validity mask rather than stored as unmasked 0s.
+  
+  # Spectral Reflectance Bands (B1–B12, B8A). These bands are stored as UINT16 
+  # integers scaled by 10000. A value of 0 represents a valid pixel where 
+  # surface reflectance is 0.0. Because the collection harmonizes post-January 
+  # 2022 data (PROCESSING_BASELINE >= 04.00) by subtracting the 1000 DN offset 
+  # and clamping negative results to the UINT16 floor, dark surfaces or 
+  # over-corrected atmospheric pixels can legitimately hit 0
+  
+  # Scene Classification Map (SCL). Unlike the spectral bands, 0 in the raw 
+  # Copernicus SCL specification stands for "No Data". According to the Earth 
+  # Engine Data Catalog, GEE automatically masks out SCL == 0 upon ingestion, 
+  # leaving valid SCL values ranging from 1 to 11.
+  
+  # https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_SR_HARMONIZED
+  # https://clearsky.vision/knowledge/sentinel2-scaling-harmonization
+  
   
   # 4.6. Apply Raster Mask ----------------------------------------------------
   
