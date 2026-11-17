@@ -171,14 +171,14 @@ for (drivedir in dirs) {
   # plotRGB(out, r = 3, g = 2, b = 1, stretch = "lin")
   
   
-  # 4.7. Replace Zero Reflectance Values --------------------------------------
-  
-  cat("\t", "Replacing zero reflectance values...\n")
-  
-  # Replace valid zero reflectance values with a small positive value
-  # to prevent division-by-zero errors when calculating spectral indices.
-  # Existing NA values are preserved.
-  out <- ifel(out == 0, 0.001, out)
+  # # 4.7. Replace Zero Reflectance Values --------------------------------------
+  # 
+  # cat("\t", "Replacing zero reflectance values...\n")
+  # 
+  # # Replace valid zero reflectance values with a small positive value
+  # # to prevent division-by-zero errors when calculating spectral indices.
+  # # Existing NA values are preserved.
+  # out <- ifel(out == 0, 0.001, out)
   
   
   # 4.8. Export Processed Spectral Mosaic -------------------------------------
