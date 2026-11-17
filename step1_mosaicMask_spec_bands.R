@@ -196,7 +196,7 @@ for (drivedir in dirs) {
   
   
   # # 4.7. Replace Zero Reflectance Values --------------------------------------
-  # 
+  # DO NOT RUN THIS!
   # cat("\t", "Replacing zero reflectance values...\n")
   # 
   # # Replace valid zero reflectance values with a small positive value
