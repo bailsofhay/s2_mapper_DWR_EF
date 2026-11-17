@@ -65,7 +65,8 @@ quantile(rip_sum3[], na.rm = T)
 vals = values(rip_sum3, dataframe = T, na.rm = T)$X1
 hist(vals)
 
-rip_mask = as.numeric(rip_sum3 >= 4)
+# rip_sum2 is the riparian sum that includes all areas, even missing flightlines for some years
+rip_mask = as.numeric(rip_sum2 >= 4)
 NAflag(rip_mask) = 0
 
 writeRaster(rip_mask, "E://sentinel2_harmonized/riparian_mask/rip_mask_allYears.tif")
