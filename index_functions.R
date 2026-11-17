@@ -23,30 +23,30 @@ safe_denom <- function(x) {
 
 # 2. Spectral Index Functions -------------------------------------------------
 
-# # 2.1. Enhanced Vegetation Index (EVI) ----------------------------------------
-# 
-# evi <- function(r) {
-#   
-#   denom <- safe_denom(r$B8 + 6 * r$B4 - 7.5 * r$B2 + 1)
-#   
-#   out <- 2.5 * ((r$B8 - r$B4) / denom)
-#   
-#   names(out) <- "evi"
-#   return(out)
-# }
+# 2.1. Enhanced Vegetation Index (EVI) ----------------------------------------
+
+evi <- function(r) {
+
+  denom <- safe_denom(r$B8 + 6 * r$B4 - 7.5 * r$B2 + 1)
+
+  out <- 2.5 * ((r$B8 - r$B4) / denom)
+
+  names(out) <- "evi"
+  return(out)
+}
 
 
-# # 2.2. Green Normalized Difference Vegetation Index (GNDVI) -------------------
-# 
-# gndvi <- function(r) {
-#   
-#   denom <- safe_denom(r$B8 + r$B3)
-#   
-#   out <- (r$B8 - r$B3) / denom
-#   
-#   names(out) <- "gndvi"
-#   return(out)
-# }
+# 2.2. Green Normalized Difference Vegetation Index (GNDVI) -------------------
+
+gndvi <- function(r) {
+
+  denom <- safe_denom(r$B8 + r$B3)
+
+  out <- (r$B8 - r$B3) / denom
+
+  names(out) <- "gndvi"
+  return(out)
+}
 
 
 # 2.3. Modified Chlorophyll Absorption Ratio Index (MCARI) --------------------
@@ -76,17 +76,17 @@ mndwi <- function(r) {
 }
 
 
-# # 2.5. Normalized Difference Aquatic Vegetation Index (NDAVI) -----------------
-# 
-# ndavi <- function(r) {
-#   
-#   denom <- safe_denom(r$B8 + r$B2)
-#   
-#   out <- (r$B8 - r$B2) / denom
-#   
-#   names(out) <- "ndavi"
-#   return(out)
-# }
+# 2.5. Normalized Difference Aquatic Vegetation Index (NDAVI) -----------------
+
+ndavi <- function(r) {
+
+  denom <- safe_denom(r$B8 + r$B2)
+
+  out <- (r$B8 - r$B2) / denom
+
+  names(out) <- "ndavi"
+  return(out)
+}
 
 
 # 2.6. Normalized Difference Moisture Index (NDMI) ----------------------------
@@ -102,30 +102,30 @@ ndmi <- function(r) {
 }
 
 
-# # 2.7. Normalized Difference Vegetation Index (NDVI) --------------------------
-# 
-# ndvi <- function(r) {
-#   
-#   denom <- safe_denom(r$B8 + r$B4)
-#   
-#   out <- (r$B8 - r$B4) / denom
-#   
-#   names(out) <- "ndvi"
-#   return(out)
-# }
+# 2.7. Normalized Difference Vegetation Index (NDVI) --------------------------
+
+ndvi <- function(r) {
+
+  denom <- safe_denom(r$B8 + r$B4)
+
+  out <- (r$B8 - r$B4) / denom
+
+  names(out) <- "ndvi"
+  return(out)
+}
 
 
-# # 2.8. Soil Adjusted Vegetation Index (SAVI) ----------------------------------
-# 
-# savi <- function(r) {
-#   
-#   denom <- safe_denom(r$B8 + r$B4 + 0.5)
-#   
-#   out <- 1.5 * ((r$B8 - r$B4) / denom)
-#   
-#   names(out) <- "savi"
-#   return(out)
-# }
+# 2.8. Soil Adjusted Vegetation Index (SAVI) ----------------------------------
+
+savi <- function(r) {
+
+  denom <- safe_denom(r$B8 + r$B4 + 0.5)
+
+  out <- 1.5 * ((r$B8 - r$B4) / denom)
+
+  names(out) <- "savi"
+  return(out)
+}
 
 
 # 2.9. Visible Atmospherically Resistant Index (VARI) -------------------------
@@ -141,14 +141,14 @@ vari <- function(r) {
 }
 
 
-# # 2.10. Water Adjusted Vegetation Index (WAVI) --------------------------------
-# 
-# wavi <- function(r) {
-#   
-#   denom <- safe_denom(0.5 + r$B8 + r$B2)
-#   
-#   out <- (r$B8 - r$B2) / denom
-#   
-#   names(out) <- "wavi"
-#   return(out)
-# }
+# 2.10. Water Adjusted Vegetation Index (WAVI) --------------------------------
+
+wavi <- function(r) {
+
+  denom <- safe_denom(0.5 + r$B8 + r$B2)
+
+  out <- (r$B8 - r$B2) / denom
+
+  names(out) <- "wavi"
+  return(out)
+}
